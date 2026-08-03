@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Department - Attendance Management System{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1><i class="fa-solid fa-building-columns"></i> {{ action }} Department</h1>
+</div>
+
+<form method="POST" class="form-card">
+    <div class="form-group">
+        <label for="name"><i class="fa-solid fa-building"></i> Department Name *</label>
+        <input type="text" id="name" name="name" value="{{ department.name if department else '' }}" required>
+    </div>
+    <div class="form-group">
+        <label for="code"><i class="fa-solid fa-hashtag"></i> Department Code</label>
+        <input type="text" id="code" name="code" value="{{ department.code if department else '' }}" placeholder="e.g. CSE">
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> {{ action }} Department</button>
+        <a href="{{ url_for('departments') }}" class="btn btn-secondary"><i class="fa-solid fa-xmark"></i> Cancel</a>
+    </div>
+</form>
+{% endblock %}

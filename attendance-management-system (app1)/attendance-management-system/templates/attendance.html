@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Mark Attendance - Attendance Management System{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1><i class="fa-solid fa-clipboard-check"></i> Mark Attendance</h1>
+</div>
+
+<form method="GET" class="filter-bar">
+    <select name="department_id" onchange="this.form.submit()">
+        <option value="">-- Department --</option>
+        {% for d in departments %}
+        <option value="{{ d.id }}" {% if selected_department == d.id %}selected{% endif %}>{{ d.name }}</option>
+        {% endfor %}
+    </select>
+    <select name="year" onchange="this.form.submit()">
+        <option value="">-- Year --</option>
+        {% for y in years %}
+        <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>Year {{ y }}</option>
+        {% endfor %}
+    </select>
+    <select name="section" onchange="this.form.submit()">
+        <option value="">-- Section --</option>
+        {% for s in sections %}
+        <option value="{{ s }}" {% if selected_section == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+    </select>
+    <input type="date" name="date" value="{{ selected_date }}" onchange="this.form.submit()">
+    <select name="hour" onchange="this.form.submit()">
+        <option value="">-- Hour --</option>
+        {% for p in periods %}
+        <option value="{{ p }}" {% if selected_hour == p %}selected{% endif %}>Period {{ p }}</option>
+        {% endfor %}
+    </select>
+</form>
+
+{% if selected_department and selected_year and selected_section and selected_hour %}
+    {% if slot %}
+    <p class="page-subtitle">
+        {{ day_name }}, {{ selected_date }} &middot; Period {{ selected_hour }} &middot;
+        Subject: <strong>{{ slot.subject_name }}</strong> &middot; Faculty: <strong>{{ slot.faculty_name }}</strong>
+        <span class="badge-auto">auto-loaded from timetable</span>
+    </p>
+
+    {% if records %}
+    <form method="POST" id="attendance-form">
+        <input type="hidden" name="department_id" value="{{ selected_department }}">
+        <input type="hidden" name="year" value="{{ selected_year }}">
+        <input type="hidden" name="section" value="{{ selected_section }}">
+        <input type="hidden" name="date" value="{{ selected_date }}">
+        <input type="hidden" name="hour" value="{{ selected_hour }}">
+        <div class="table-wrapper reveal">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Roll No</th>
+                        <th>Name</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in records %}
+                    <tr>
+                        <td>{{ r.roll_no }}</td>
+                        <td>
+                            <div class="name-cell">
+                                <span class="cell-avatar">{{ r.name[0]|upper }}</span>
+                                {{ r.name }}
+                            </div>
+                        </td>
+                        <td>
+                            <input type="hidden" name="student_id" value="{{ r.student_id }}">
+                            <div class="status-radio-group">
+                                <label class="radio-present">
+                                    <input type="radio" name="status_{{ r.student_id }}" value="Present" {% if r.status == "Present" or not r.status %}checked{% endif %}> <i class="fa-solid fa-check"></i> Present
+                                </label>
+                                <label class="radio-absent">
+                                    <input type="radio" name="status_{{ r.student_id }}" value="Absent" {% if r.status == "Absent" %}checked{% endif %}> <i class="fa-solid fa-xmark"></i> Absent
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <button type="submit" class="btn btn-primary fab-save"><i class="fa-solid fa-floppy-disk"></i> Save Attendance</button>
+    </form>
+    {% else %}
+    <p class="empty-state"><i class="fa-solid fa-user-slash"></i><br>No students found for this Department/Year/Section.</p>
+    {% endif %}
+
+    {% else %}
+    <p class="empty-state"><i class="fa-solid fa-calendar-xmark"></i><br>No subject is scheduled in the timetable for this Department/Year/Section on {{ day_name or "that day" }}, Period {{ selected_hour }}. Ask the Admin to add it under Timetable.</p>
+    {% endif %}
+{% else %}
+<p class="empty-state"><i class="fa-solid fa-hand-pointer"></i><br>Select Department, Year, Section, Date, and Hour above to load the class.</p>
+{% endif %}
+{% endblock %}

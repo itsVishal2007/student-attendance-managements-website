@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Attendance Management System{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    {% if current_user %}
+    <div class="app-shell">
+        <div class="sidebar-backdrop"></div>
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                <div class="sidebar-brand-text">
+                    <strong>Attendance Manager</strong>
+                    <span>University ERP</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <span class="sidebar-section-label">Overview</span>
+                <a href="{{ url_for('dashboard') }}" class="sidebar-link {% if request.path == url_for('dashboard') %}active{% endif %}">
+                    <i class="fa-solid fa-chart-pie"></i> Dashboard
+                </a>
+
+                {% if current_role == 'admin' %}
+                <span class="sidebar-section-label">Academics</span>
+                <a href="{{ url_for('departments') }}" class="sidebar-link {% if request.path == url_for('departments') %}active{% endif %}">
+                    <i class="fa-solid fa-building-columns"></i> Departments
+                </a>
+                <a href="{{ url_for('faculty_list') }}" class="sidebar-link {% if request.path == url_for('faculty_list') %}active{% endif %}">
+                    <i class="fa-solid fa-chalkboard-user"></i> Faculty
+                </a>
+                <a href="{{ url_for('subjects') }}" class="sidebar-link {% if request.path == url_for('subjects') %}active{% endif %}">
+                    <i class="fa-solid fa-book"></i> Subjects
+                </a>
+                <a href="{{ url_for('students') }}" class="sidebar-link {% if request.path == url_for('students') %}active{% endif %}">
+                    <i class="fa-solid fa-user-graduate"></i> Students
+                </a>
+
+                <span class="sidebar-section-label">Operations</span>
+                <a href="{{ url_for('timetable') }}" class="sidebar-link {% if request.path == url_for('timetable') %}active{% endif %}">
+                    <i class="fa-solid fa-calendar-days"></i> Timetable
+                </a>
+                <a href="{{ url_for('attendance') }}" class="sidebar-link {% if request.path == url_for('attendance') %}active{% endif %}">
+                    <i class="fa-solid fa-clipboard-check"></i> Attendance
+                </a>
+                <a href="{{ url_for('reports') }}" class="sidebar-link {% if request.path == url_for('reports') %}active{% endif %}">
+                    <i class="fa-solid fa-chart-column"></i> Reports
+                </a>
+                {% elif current_role == 'faculty' %}
+                <span class="sidebar-section-label">Operations</span>
+                <a href="{{ url_for('timetable') }}" class="sidebar-link {% if request.path == url_for('timetable') %}active{% endif %}">
+                    <i class="fa-solid fa-calendar-days"></i> Timetable
+                </a>
+                <a href="{{ url_for('attendance') }}" class="sidebar-link {% if request.path == url_for('attendance') %}active{% endif %}">
+                    <i class="fa-solid fa-clipboard-check"></i> Mark Attendance
+                </a>
+                <a href="{{ url_for('reports') }}" class="sidebar-link {% if request.path == url_for('reports') %}active{% endif %}">
+                    <i class="fa-solid fa-chart-column"></i> Reports
+                </a>
+                {% endif %}
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-avatar">{{ current_user[0]|upper }}</div>
+                    <div class="sidebar-user-info">
+                        <strong>{{ current_user }}</strong>
+                        <span class="role-badge role-{{ current_role }}">{{ current_role|capitalize }}</span>
+                    </div>
+                    <a href="{{ url_for('logout') }}" class="sidebar-logout" title="Logout"><i class="fa-solid fa-arrow-right-from-bracket"></i></a>
+                </div>
+            </div>
+        </aside>
+
+        <div class="app-main">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button type="button" class="menu-toggle" aria-label="Toggle menu"><i class="fa-solid fa-bars"></i></button>
+                    <div class="topbar-title">
+                        Attendance Manager
+                        <span>{{ current_role|capitalize }} workspace</span>
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <div class="topbar-user">
+                        <div class="topbar-avatar">{{ current_user[0]|upper }}</div>
+                        <div class="topbar-user-text">
+                            {{ current_user }}
+                            <small>{{ current_role|capitalize }}</small>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('logout') }}" class="btn btn-small btn-danger"><i class="fa-solid fa-power-off"></i> Logout</a>
+                </div>
+            </header>
+
+            <main class="container">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-container">
+                            {% for category, message in messages %}
+                                <div class="flash flash-{{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    {% endif %}
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

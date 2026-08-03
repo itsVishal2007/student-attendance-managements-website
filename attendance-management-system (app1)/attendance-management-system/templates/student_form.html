@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Student - Attendance Management System{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1><i class="fa-solid fa-user-graduate"></i> {{ action }} Student</h1>
+</div>
+
+<form method="POST" class="form-card">
+    <div class="form-group">
+        <label for="roll_no"><i class="fa-solid fa-id-card"></i> Roll No *</label>
+        <input type="text" id="roll_no" name="roll_no" value="{{ student.roll_no if student else '' }}" required>
+    </div>
+    <div class="form-group">
+        <label for="name"><i class="fa-solid fa-user"></i> Full Name *</label>
+        <input type="text" id="name" name="name" value="{{ student.name if student else '' }}" required>
+    </div>
+    <div class="form-group">
+        <label for="department_id"><i class="fa-solid fa-building-columns"></i> Department</label>
+        <select id="department_id" name="department_id">
+            <option value="">-- Select Department --</option>
+            {% for d in departments %}
+            <option value="{{ d.id }}" {% if student and student.department_id == d.id %}selected{% endif %}>{{ d.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="year"><i class="fa-solid fa-layer-group"></i> Year</label>
+        <select id="year" name="year">
+            <option value="">-- Select Year --</option>
+            {% for y in years %}
+            <option value="{{ y }}" {% if student and student.year == y %}selected{% endif %}>Year {{ y }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="section"><i class="fa-solid fa-users"></i> Section</label>
+        <input type="text" id="section" name="section" value="{{ student.section if student else '' }}" placeholder="e.g. A">
+    </div>
+    <div class="form-group">
+        <label for="email"><i class="fa-solid fa-envelope"></i> Email</label>
+        <input type="email" id="email" name="email" value="{{ student.email if student else '' }}">
+    </div>
+    <div class="form-group">
+        <label for="username"><i class="fa-solid fa-at"></i> Login Username *</label>
+        <input type="text" id="username" name="username" value="{{ student.username if student else '' }}" required>
+    </div>
+    <div class="form-group">
+        <label for="password"><i class="fa-solid fa-lock"></i> Login Password {% if not student %}*{% endif %}</label>
+        <input type="password" id="password" name="password" {% if not student %}required{% endif %}
+               placeholder="{{ 'Leave blank to keep current password' if student else '' }}">
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> {{ action }} Student</button>
+        <a href="{{ url_for('students') }}" class="btn btn-secondary"><i class="fa-solid fa-xmark"></i> Cancel</a>
+    </div>
+</form>
+{% endblock %}

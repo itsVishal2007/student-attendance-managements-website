@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Subject - Attendance Management System{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1><i class="fa-solid fa-book"></i> {{ action }} Subject</h1>
+</div>
+
+<form method="POST" class="form-card">
+    <div class="form-group">
+        <label for="name"><i class="fa-solid fa-book-open"></i> Subject Name *</label>
+        <input type="text" id="name" name="name" value="{{ subject.name if subject else '' }}" required>
+    </div>
+    <div class="form-group">
+        <label for="code"><i class="fa-solid fa-hashtag"></i> Subject Code</label>
+        <input type="text" id="code" name="code" value="{{ subject.code if subject else '' }}" placeholder="e.g. CS301">
+    </div>
+    <div class="form-group">
+        <label for="department_id"><i class="fa-solid fa-building-columns"></i> Department</label>
+        <select id="department_id" name="department_id">
+            <option value="">-- Select Department --</option>
+            {% for d in departments %}
+            <option value="{{ d.id }}" {% if subject and subject.department_id == d.id %}selected{% endif %}>{{ d.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="year"><i class="fa-solid fa-layer-group"></i> Year</label>
+        <select id="year" name="year">
+            <option value="">-- Select Year --</option>
+            {% for y in years %}
+            <option value="{{ y }}" {% if subject and subject.year == y %}selected{% endif %}>Year {{ y }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> {{ action }} Subject</button>
+        <a href="{{ url_for('subjects') }}" class="btn btn-secondary"><i class="fa-solid fa-xmark"></i> Cancel</a>
+    </div>
+</form>
+{% endblock %}

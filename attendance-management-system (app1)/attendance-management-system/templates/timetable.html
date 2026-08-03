@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Timetable - Attendance Management System{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1><i class="fa-solid fa-calendar-days"></i> Timetable</h1>
+    {% if current_role == 'admin' %}
+    <a href="{{ url_for('add_timetable_entry') }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Period</a>
+    {% endif %}
+</div>
+
+<form method="GET" class="filter-bar">
+    <select name="department_id" onchange="this.form.submit()">
+        <option value="">-- Department --</option>
+        {% for d in departments %}
+        <option value="{{ d.id }}" {% if selected_department == d.id %}selected{% endif %}>{{ d.name }}</option>
+        {% endfor %}
+    </select>
+    <select name="year" onchange="this.form.submit()">
+        <option value="">-- Year --</option>
+        {% for y in years %}
+        <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>Year {{ y }}</option>
+        {% endfor %}
+    </select>
+    <select name="section" onchange="this.form.submit()">
+        <option value="">-- Section --</option>
+        {% for s in sections %}
+        <option value="{{ s }}" {% if selected_section == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+    </select>
+</form>
+
+{% if entries %}
+<div class="timetable-grid-wrapper reveal">
+    <table class="timetable-grid">
+        <thead>
+            <tr>
+                <th class="tt-corner">Day</th>
+                {% for p in periods %}
+                <th>Period {{ p }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for day in days %}
+            <tr>
+                <th class="tt-day">{{ day }}</th>
+                {% for p in periods %}
+                    {% set e = grid[day][p] %}
+                    {% if e %}
+                        {% set subj = (e.subject_name or "")|lower %}
+                        {% if 'os lab' in subj or subj == 'os' or 'operating system' in subj %}
+                            {% set subj_class = 'tt-subj-blue' %}
+                        {% elif 'dbms' in subj or 'database' in subj %}
+                            {% set subj_class = 'tt-subj-green' %}
+                        {% elif 'math' in subj %}
+                            {% set subj_class = 'tt-subj-orange' %}
+                        {% elif 'digital marketing' in subj %}
+                            {% set subj_class = 'tt-subj-purple' %}
+                        {% elif 'minor' in subj %}
+                            {% set subj_class = 'tt-subj-grey' %}
+                        {% else %}
+                            {% set subj_class = 'tt-subj-lightblue' %}
+                        {% endif %}
+                    <td class="tt-cell {{ subj_class }}">
+                        {% if current_role == 'admin' %}
+                        <a href="{{ url_for('edit_timetable_entry', entry_id=e.id) }}" class="tt-cell-link" title="Edit period">
+                        {% endif %}
+                            <span class="tt-subject">{{ e.subject_name }}</span>
+                            <span class="tt-faculty">{{ e.faculty_name }}</span>
+                        {% if current_role == 'admin' %}
+                        </a>
+                        <form method="POST" action="{{ url_for('delete_timetable_entry', entry_id=e.id) }}" class="tt-delete-form" onsubmit="return confirmDelete('this period');">
+                            <button type="submit" class="tt-delete-btn" title="Delete period">&times;</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                    {% else %}
+                    <td class="tt-cell tt-cell-empty">-</td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="tt-legend">
+    <span class="tt-legend-item"><span class="tt-swatch tt-subj-blue"></span>OS / OS Lab</span>
+    <span class="tt-legend-item"><span class="tt-swatch tt-subj-green"></span>DBMS</span>
+    <span class="tt-legend-item"><span class="tt-swatch tt-subj-orange"></span>Maths</span>
+    <span class="tt-legend-item"><span class="tt-swatch tt-subj-purple"></span>Digital Marketing</span>
+    <span class="tt-legend-item"><span class="tt-swatch tt-subj-grey"></span>Minor</span>
+    <span class="tt-legend-item"><span class="tt-swatch tt-subj-lightblue"></span>Other</span>
+</div>
+{% else %}
+<p class="empty-state"><i class="fa-solid fa-calendar-xmark"></i><br>No Timetable Available. Please Add Timetable.</p>
+{% endif %}
+{% endblock %}

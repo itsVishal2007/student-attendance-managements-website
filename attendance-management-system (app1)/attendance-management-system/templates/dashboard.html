@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Attendance Management System{% endblock %}
+{% block content %}
+
+{% if role == 'student' %}
+    <div class="hero-welcome reveal">
+        <div class="hero-welcome-inner">
+            <span class="hero-eyebrow"><i class="fa-solid fa-user-graduate"></i> Student Workspace</span>
+            <h1>Welcome back, {{ student.name }}</h1>
+            <p>Roll No: {{ student.roll_no }} &middot; {{ student.department_name or "-" }}
+                &middot; Year {{ student.year or "-" }} &middot; Section {{ student.section or "-" }}</p>
+        </div>
+    </div>
+
+    <div class="ring-section">
+        <div class="ring-card reveal">
+            <div class="attendance-ring" data-pct="{{ stats.percentage }}"
+                 style="--ring-color: {% if stats.status_class == 'good' %}#16a34a{% elif stats.status_class == 'bad' %}#e11d48{% else %}#3654f4{% endif %};">
+                <div class="attendance-ring-inner">
+                    <strong>{{ stats.percentage }}%</strong>
+                    <span>Overall</span>
+                </div>
+            </div>
+            <div class="ring-meta">
+                <h3>Your Attendance</h3>
+                <p>
+                    <span class="pct-badge {% if stats.status_class == 'good' %}pct-good{% elif stats.status_class == 'bad' %}pct-bad{% else %}pct-neutral{% endif %}">
+                        {{ stats.status_text }}
+                    </span>
+                </p>
+                <div class="mini-stat-row">
+                    <div class="mini-stat mini-green">
+                        <strong>{{ stats.present }}</strong>
+                        <span>Present Days</span>
+                    </div>
+                    <div class="mini-stat mini-red">
+                        <strong>{{ stats.absent }}</strong>
+                        <span>Absent Days</span>
+                    </div>
+                    <div class="mini-stat">
+                        <strong>{{ stats.remaining_leave }}</strong>
+                        <span>Leave Left (&ge;75%)</span>
+                    </div>
+                    <div class="mini-stat">
+                        <strong>{{ stats.days_required }}</strong>
+                        <span>Classes to Reach 75%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="motivation-card {% if stats.status_class == 'good' %}motivation-good{% elif stats.status_class == 'bad' %}motivation-bad{% endif %} reveal">
+            {% if stats.status_class == 'bad' %}
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <h4>Stay on track</h4>
+                <p>You need {{ stats.days_required }} more class{{ "es" if stats.days_required != 1 else "" }} to cross the 75% eligibility mark. Every class counts!</p>
+            {% elif stats.status_class == 'good' %}
+                <i class="fa-solid fa-trophy"></i>
+                <h4>Great job!</h4>
+                <p>You can take {{ stats.remaining_leave }} more leave{{ "s" if stats.remaining_leave != 1 else "" }} and still stay above 75% attendance.</p>
+            {% else %}
+                <i class="fa-solid fa-chart-line"></i>
+                <h4>Keep it up</h4>
+                <p>Attend your classes regularly to build a strong attendance record this term.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="actions-row">
+        <a href="{{ url_for('student_history', student_id=student.id) }}" class="btn btn-primary"><i class="fa-solid fa-clock-rotate-left"></i> View Full History</a>
+    </div>
+
+    <h2 class="section-heading"><i class="fa-solid fa-book-open"></i> Subject-wise Attendance</h2>
+    {% if subject_stats %}
+    <div class="progress-list reveal">
+        {% for sub in subject_stats %}
+        <div class="progress-item">
+            <div class="progress-item-top">
+                <strong>{{ sub.subject_name }}</strong>
+                <span class="pct-badge {% if sub.status_class == 'good' %}pct-good{% elif sub.status_class == 'bad' %}pct-bad{% else %}pct-neutral{% endif %}">{{ sub.percentage }}%</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill {% if sub.status_class == 'good' %}fill-good{% elif sub.status_class == 'bad' %}fill-bad{% endif %}" data-width="{{ sub.percentage }}"></div>
+            </div>
+            <div class="progress-meta">
+                <span><i class="fa-solid fa-check"></i> Present: {{ sub.present_count }}</span>
+                <span><i class="fa-solid fa-xmark"></i> Absent: {{ sub.absent_count }}</span>
+                <span><i class="fa-solid fa-layer-group"></i> Total: {{ sub.total_count }}</span>
+                <span>{{ sub.status_text }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="table-wrapper">
+        <table class="data-table subject-attendance-table">
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Total Classes</th>
+                    <th>Present</th>
+                    <th>Absent</th>
+                    <th>%</th>
+                    <th>Eligibility Status</th>
+                    <th>Remaining Leave Allowed</th>
+                    <th>Classes Needed for 75%</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sub in subject_stats %}
+                <tr>
+                    <td>{{ sub.subject_name }}</td>
+                    <td>{{ sub.total_count }}</td>
+                    <td>{{ sub.present_count }}</td>
+                    <td>{{ sub.absent_count }}</td>
+                    <td>
+                        <span class="pct-badge {% if sub.status_class == 'good' %}pct-good{% elif sub.status_class == 'bad' %}pct-bad{% else %}pct-neutral{% endif %}">
+                            {{ sub.percentage }}%
+                        </span>
+                    </td>
+                    <td>{{ sub.status_text }}</td>
+                    <td>{{ sub.remaining_leave }}</td>
+                    <td>{{ sub.days_required }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="empty-state"><i class="fa-solid fa-inbox"></i><br>No subject-wise attendance recorded yet.</p>
+    {% endif %}
+
+{% elif role == 'faculty' %}
+    <div class="hero-welcome reveal">
+        <div class="hero-welcome-inner">
+            <span class="hero-eyebrow"><i class="fa-solid fa-chalkboard-user"></i> Faculty Workspace</span>
+            <h1>Welcome back, {{ current_user }}</h1>
+            <p>Here's your schedule for today &middot; {{ today }}</p>
+        </div>
+    </div>
+
+    <h2 class="section-heading"><i class="fa-solid fa-calendar-day"></i> Today's Timetable</h2>
+    {% if todays_classes %}
+    <div class="table-wrapper reveal">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Hour</th>
+                    <th>Department</th>
+                    <th>Year</th>
+                    <th>Section</th>
+                    <th>Subject</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in todays_classes %}
+                <tr>
+                    <td><span class="badge-auto">Period {{ t.hour }}</span></td>
+                    <td>{{ t.department_name }}</td>
+                    <td>{{ t.year }}</td>
+                    <td>{{ t.section }}</td>
+                    <td>{{ t.subject_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="empty-state"><i class="fa-solid fa-mug-hot"></i><br>No classes scheduled for you today.</p>
+    {% endif %}
+
+    <h2 class="section-heading"><i class="fa-solid fa-bolt"></i> Quick Actions</h2>
+    <div class="module-grid">
+        <a href="{{ url_for('attendance') }}" class="module-card">
+            <span class="module-icon"><i class="fa-solid fa-clipboard-check"></i></span>
+            <span class="module-name">Mark Attendance</span>
+            <span class="module-desc">Take today's attendance</span>
+        </a>
+        <a href="{{ url_for('timetable') }}" class="module-card">
+            <span class="module-icon"><i class="fa-solid fa-calendar-days"></i></span>
+            <span class="module-name">View Timetable</span>
+            <span class="module-desc">See your full weekly schedule</span>
+        </a>
+        <a href="{{ url_for('reports') }}" class="module-card">
+            <span class="module-icon"><i class="fa-solid fa-chart-column"></i></span>
+            <span class="module-name">Reports</span>
+            <span class="module-desc">Daily &amp; monthly attendance reports</span>
+        </a>
+    </div>
+
+{% else %}
+    <div class="hero-welcome reveal">
+        <div class="hero-welcome-inner">
+            <span class="hero-eyebrow"><i class="fa-solid fa-user-shield"></i> Admin Workspace</span>
+            <h1>Welcome back, {{ current_user }}</h1>
+            <p>Here's what's happening across your institution today &middot; {{ today }}</p>
+        </div>
+    </div>
+
+    <h2 class="section-heading"><i class="fa-solid fa-chart-simple"></i> Today's Overview</h2>
+    <div class="cards-grid">
+        <div class="card">
+            <div class="card-icon"><i class="fa-solid fa-user-graduate"></i></div>
+            <div class="card-value" data-count="{{ total_students }}">0</div>
+            <div class="card-label">Total Students</div>
+        </div>
+        <div class="card">
+            <div class="card-icon"><i class="fa-solid fa-building-columns"></i></div>
+            <div class="card-value" data-count="{{ total_departments }}">0</div>
+            <div class="card-label">Departments</div>
+        </div>
+        <div class="card">
+            <div class="card-icon"><i class="fa-solid fa-chalkboard-user"></i></div>
+            <div class="card-value" data-count="{{ total_faculty }}">0</div>
+            <div class="card-label">Faculty</div>
+        </div>
+        <div class="card">
+            <div class="card-icon"><i class="fa-solid fa-book"></i></div>
+            <div class="card-value" data-count="{{ total_subjects }}">0</div>
+            <div class="card-label">Subjects</div>
+        </div>
+        <div class="card card-green">
+            <div class="card-icon"><i class="fa-solid fa-user-check"></i></div>
+            <div class="card-value" data-count="{{ present_today }}">0</div>
+            <div class="card-label">Present Today</div>
+        </div>
+        <div class="card card-red">
+            <div class="card-icon"><i class="fa-solid fa-user-xmark"></i></div>
+            <div class="card-value" data-count="{{ absent_today }}">0</div>
+            <div class="card-label">Absent Today</div>
+        </div>
+        <div class="card card-yellow">
+            <div class="card-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div class="card-value" data-count="{{ below_75_count }}">0</div>
+            <div class="card-label">Students Below 75%</div>
+        </div>
+    </div>
+
+    <h2 class="section-heading"><i class="fa-solid fa-bolt"></i> Manage</h2>
+    <div class="module-grid">
+        <a href="{{ url_for('departments') }}" class="module-card">
+            <span class="module-icon"><i class="fa-solid fa-building-columns"></i></span>
+            <span class="module-name">Departments</span>
+            <span class="module-desc">Add / Edit / Delete departments</span>
+        </a>
+        <a href="{{ url_for('faculty_list') }}" class="module-card">
+            <span class="module-icon"><i class="fa-solid fa-chalkboard-user"></i></span>
+            <span class="module-name">Faculty</span>
+            <span class="module-desc">Add / Edit / Delete faculty</span>
+        </a>
+        <a href="{{ url_for('subjects') }}" class="module-card">
+            <span class="module-icon"><i class="fa-solid fa-book"></i></span>
+            <span class="module-name">Subjects</span>
+            <span class="module-desc">Add / Edit / Delete subjects</span>
+        </a>
+        <a href="{{ url_for('students') }}" class="module-card">
+            <span class="module-icon"><i class="fa-solid fa-user-graduate"></i></span>
+            <span class="module-name">Students</span>
+            <span class="module-desc">Add / Edit / Delete / Search</span>
+        </a>
+        <a href="{{ url_for('timetable') }}" class="module-card">
+            <span class="module-icon"><i class="fa-solid fa-calendar-days"></i></span>
+            <span class="module-name">Timetable</span>
+            <span class="module-desc">Build the class timetable</span>
+        </a>
+        <a href="{{ url_for('attendance') }}" class="module-card">
+            <span class="module-icon"><i class="fa-solid fa-clipboard-check"></i></span>
+            <span class="module-name">Attendance</span>
+            <span class="module-desc">Mark daily attendance</span>
+        </a>
+        <a href="{{ url_for('reports') }}" class="module-card">
+            <span class="module-icon"><i class="fa-solid fa-chart-column"></i></span>
+            <span class="module-name">Reports</span>
+            <span class="module-desc">Daily, monthly &amp; below-75% reports</span>
+        </a>
+        <a href="{{ url_for('students') }}" class="module-card">
+            <span class="module-icon"><i class="fa-solid fa-arrow-trend-up"></i></span>
+            <span class="module-name">Student Dashboards</span>
+            <span class="module-desc">Open any student to view their stats</span>
+        </a>
+    </div>
+
+    <div class="actions-row">
+        <a href="{{ url_for('attendance') }}" class="btn btn-primary"><i class="fa-solid fa-clipboard-check"></i> Mark Today's Attendance</a>
+        <a href="{{ url_for('add_student') }}" class="btn btn-secondary"><i class="fa-solid fa-user-plus"></i> Add New Student</a>
+        <a href="{{ url_for('timetable') }}" class="btn btn-secondary"><i class="fa-solid fa-calendar-days"></i> View Timetable</a>
+        <a href="{{ url_for('reports') }}" class="btn btn-secondary"><i class="fa-solid fa-chart-column"></i> View Reports</a>
+    </div>
+{% endif %}
+
+{% endblock %}

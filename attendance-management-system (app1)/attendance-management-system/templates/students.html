@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Students - Attendance Management System{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1><i class="fa-solid fa-user-graduate"></i> Students</h1>
+    <a href="{{ url_for('add_student') }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Student</a>
+</div>
+
+<form method="GET" class="filter-bar">
+    <select name="department_id" onchange="this.form.submit()">
+        <option value="">All Departments</option>
+        {% for d in departments %}
+        <option value="{{ d.id }}" {% if filters.department_id and filters.department_id|int == d.id %}selected{% endif %}>{{ d.name }}</option>
+        {% endfor %}
+    </select>
+    <select name="year" onchange="this.form.submit()">
+        <option value="">All Years</option>
+        {% for y in years %}
+        <option value="{{ y }}" {% if filters.year and filters.year|int == y %}selected{% endif %}>Year {{ y }}</option>
+        {% endfor %}
+    </select>
+    <input type="text" name="section" placeholder="Section" value="{{ filters.section or '' }}" class="filter-input-small">
+    <input type="text" name="search" placeholder="Search by name, roll no, or email" value="{{ filters.search }}" class="filter-input">
+    <button type="submit" class="btn btn-secondary"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+    <a href="{{ url_for('students') }}" class="btn btn-small btn-secondary"><i class="fa-solid fa-rotate-left"></i> Reset</a>
+</form>
+
+{% if students %}
+<div class="table-wrapper reveal">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Roll No</th>
+                <th>Name</th>
+                <th>Department</th>
+                <th>Year</th>
+                <th>Section</th>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in students %}
+            <tr>
+                <td>{{ s.roll_no }}</td>
+                <td>
+                    <div class="name-cell">
+                        <span class="cell-avatar">{{ s.name[0]|upper }}</span>
+                        {{ s.name }}
+                    </div>
+                </td>
+                <td>{{ s.department_name or "-" }}</td>
+                <td>{{ s.year or "-" }}</td>
+                <td>{{ s.section or "-" }}</td>
+                <td>{{ s.email or "-" }}</td>
+                <td class="actions-cell">
+                    <a href="{{ url_for('student_history', student_id=s.id) }}" class="btn btn-small btn-secondary"><i class="fa-solid fa-chart-line"></i> History</a>
+                    <a href="{{ url_for('edit_student', student_id=s.id) }}" class="btn btn-small btn-secondary"><i class="fa-solid fa-pen"></i> Edit</a>
+                    <form method="POST" action="{{ url_for('delete_student', student_id=s.id) }}" class="inline-form" onsubmit="return confirmDelete('{{ s.name }}');">
+                        <button type="submit" class="btn btn-small btn-danger"><i class="fa-solid fa-trash"></i> Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="empty-state"><i class="fa-solid fa-user-slash"></i><br>No students found. Click "Add Student" to get started.</p>
+{% endif %}
+
+<a href="{{ url_for('add_student') }}" class="fab" title="Add Student"><i class="fa-solid fa-plus"></i></a>
+{% endblock %}

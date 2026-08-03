@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Faculty - Attendance Management System{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1><i class="fa-solid fa-chalkboard-user"></i> {{ action }} Faculty</h1>
+</div>
+
+<form method="POST" class="form-card">
+    <div class="form-group">
+        <label for="name"><i class="fa-solid fa-user"></i> Full Name *</label>
+        <input type="text" id="name" name="name" value="{{ faculty.name if faculty else '' }}" required>
+    </div>
+    <div class="form-group">
+        <label for="department_id"><i class="fa-solid fa-building-columns"></i> Department</label>
+        <select id="department_id" name="department_id">
+            <option value="">-- Select Department --</option>
+            {% for d in departments %}
+            <option value="{{ d.id }}" {% if faculty and faculty.department_id == d.id %}selected{% endif %}>{{ d.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="email"><i class="fa-solid fa-envelope"></i> Email</label>
+        <input type="email" id="email" name="email" value="{{ faculty.email if faculty else '' }}">
+    </div>
+    <div class="form-group">
+        <label for="phone"><i class="fa-solid fa-phone"></i> Phone</label>
+        <input type="text" id="phone" name="phone" value="{{ faculty.phone if faculty else '' }}">
+    </div>
+    <div class="form-group">
+        <label for="username"><i class="fa-solid fa-at"></i> Login Username *</label>
+        <input type="text" id="username" name="username" value="{{ faculty.username if faculty else '' }}" required>
+    </div>
+    <div class="form-group">
+        <label for="password"><i class="fa-solid fa-lock"></i> Login Password {% if not faculty %}*{% endif %}</label>
+        <input type="password" id="password" name="password" {% if not faculty %}required{% endif %}
+               placeholder="{{ 'Leave blank to keep current password' if faculty else '' }}">
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> {{ action }} Faculty</button>
+        <a href="{{ url_for('faculty_list') }}" class="btn btn-secondary"><i class="fa-solid fa-xmark"></i> Cancel</a>
+    </div>
+</form>
+{% endblock %}

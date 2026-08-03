@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}{{ student.name }} History - Attendance Management System{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1><i class="fa-solid fa-clock-rotate-left"></i> {{ student.name }}'s Attendance History</h1>
+    {% if current_role == 'admin' %}
+    <a href="{{ url_for('students') }}" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Back to Students</a>
+    {% endif %}
+</div>
+<p class="page-subtitle">
+    Roll No: {{ student.roll_no }} &middot; {{ student.department_name or "-" }}
+    &middot; Year {{ student.year or "-" }} &middot; Section {{ student.section or "-" }}
+</p>
+
+<div class="ring-section">
+    <div class="ring-card reveal">
+        <div class="attendance-ring" data-pct="{{ stats.percentage }}"
+             style="--ring-color: {% if stats.status_class == 'good' %}#16a34a{% elif stats.status_class == 'bad' %}#e11d48{% else %}#3654f4{% endif %};">
+            <div class="attendance-ring-inner">
+                <strong>{{ stats.percentage }}%</strong>
+                <span>Overall</span>
+            </div>
+        </div>
+        <div class="ring-meta">
+            <h3>Attendance Summary</h3>
+            <p>
+                <span class="pct-badge {% if stats.status_class == 'good' %}pct-good{% elif stats.status_class == 'bad' %}pct-bad{% else %}pct-neutral{% endif %}">
+                    {{ stats.status_text }}
+                </span>
+            </p>
+            <div class="mini-stat-row">
+                <div class="mini-stat mini-green">
+                    <strong>{{ stats.present }}</strong>
+                    <span>Present Days</span>
+                </div>
+                <div class="mini-stat mini-red">
+                    <strong>{{ stats.absent }}</strong>
+                    <span>Absent Days</span>
+                </div>
+                <div class="mini-stat">
+                    <strong>{{ stats.remaining_leave }}</strong>
+                    <span>Remaining Leave</span>
+                </div>
+                <div class="mini-stat">
+                    <strong>{{ stats.days_required }}</strong>
+                    <span>Classes Needed for 75%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if stats.total > 0 %}
+    {% if stats.status_class == 'bad' %}
+    <p class="attendance-note note-bad">
+        You must attend {{ stats.days_required }} more class{{ "es" if stats.days_required != 1 else "" }} to reach 75% attendance.
+    </p>
+    {% elif stats.status_class == 'good' %}
+    <p class="attendance-note note-good">
+        You can take {{ stats.remaining_leave }} more leave{{ "s" if stats.remaining_leave != 1 else "" }} while maintaining 75% attendance.
+    </p>
+    {% endif %}
+{% endif %}
+
+<h2 class="section-heading"><i class="fa-solid fa-book-open"></i> Subject-wise Attendance</h2>
+{% if subject_stats %}
+<div class="table-wrapper">
+    <table class="data-table subject-attendance-table">
+        <thead>
+            <tr>
+                <th>Subject</th>
+                <th>Total Classes</th>
+                <th>Present</th>
+                <th>Absent</th>
+                <th>%</th>
+                <th>Eligibility Status</th>
+                <th>Remaining Leave Allowed</th>
+                <th>Classes Needed for 75%</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sub in subject_stats %}
+            <tr>
+                <td>{{ sub.subject_name }}</td>
+                <td>{{ sub.total_count }}</td>
+                <td>{{ sub.present_count }}</td>
+                <td>{{ sub.absent_count }}</td>
+                <td>
+                    <span class="pct-badge {% if sub.status_class == 'good' %}pct-good{% elif sub.status_class == 'bad' %}pct-bad{% else %}pct-neutral{% endif %}">
+                        {{ sub.percentage }}%
+                    </span>
+                </td>
+                <td>{{ sub.status_text }}</td>
+                <td>{{ sub.remaining_leave }}</td>
+                <td>{{ sub.days_required }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="empty-state"><i class="fa-solid fa-inbox"></i><br>No subject-wise attendance recorded yet.</p>
+{% endif %}
+
+<h2 class="section-heading"><i class="fa-solid fa-list-check"></i> Full Attendance Log</h2>
+{% if history %}
+<div class="table-wrapper">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Hour</th>
+                <th>Subject</th>
+                <th>Faculty</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for h in history %}
+            <tr>
+                <td>{{ h.date }}</td>
+                <td>{{ h.hour }}</td>
+                <td>{{ h.subject_name or "-" }}</td>
+                <td>{{ h.faculty_name or "-" }}</td>
+                <td>
+                    <span class="status-badge status-{{ h.status|lower }}">{{ h.status }}</span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="empty-state"><i class="fa-solid fa-inbox"></i><br>No attendance recorded for this student yet.</p>
+{% endif %}
+{% endblock %}

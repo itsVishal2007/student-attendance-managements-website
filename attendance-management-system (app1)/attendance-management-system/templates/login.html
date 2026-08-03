@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Attendance Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="login-body">
+    <div class="login-split">
+        <div class="login-visual">
+            <div class="login-shape shape-1"></div>
+            <div class="login-shape shape-2"></div>
+            <div class="login-shape shape-3"></div>
+            <div class="login-visual-content">
+                <span class="login-visual-badge"><i class="fa-solid fa-shield-halved"></i> University ERP Suite</span>
+                <h2>Smarter attendance, effortless insight.</h2>
+                <p>One unified workspace for administrators, faculty and students to track classes, mark attendance and stay on top of eligibility — in real time.</p>
+                <div class="login-visual-stats">
+                    <div><strong>75%</strong><span>Eligibility Threshold</span></div>
+                    <div><strong>24/7</strong><span>Always Available</span></div>
+                    <div><strong>3</strong><span>Role Workspaces</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="login-panel">
+            <div class="login-card">
+                <div class="login-card-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                <h1>Attendance Manager</h1>
+                <p class="subtitle">Sign in to continue</p>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-container">
+                            {% for category, message in messages %}
+                                <div class="flash flash-{{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <div class="role-tabs">
+                    <button type="button" class="role-tab active" data-role="admin"><i class="fa-solid fa-user-shield"></i> Admin</button>
+                    <button type="button" class="role-tab" data-role="faculty"><i class="fa-solid fa-chalkboard-user"></i> Faculty</button>
+                    <button type="button" class="role-tab" data-role="student"><i class="fa-solid fa-user-graduate"></i> Student</button>
+                </div>
+
+                <form method="POST">
+                    <input type="hidden" id="role" name="role" value="admin">
+                    <div class="form-group">
+                        <label for="username"><i class="fa-solid fa-user"></i> Username</label>
+                        <input type="text" id="username" name="username" required autofocus>
+                    </div>
+                    <div class="form-group">
+                        <label for="password"><i class="fa-solid fa-lock"></i> Password</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full"><i class="fa-solid fa-arrow-right-to-bracket"></i> Login</button>
+                </form>
+                <p class="hint">Admin default: <code>admin</code> / <code>admin123</code></p>
+                <p class="hint">Faculty &amp; Student accounts are created by the Admin.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        const tabs = document.querySelectorAll(".role-tab");
+        const roleInput = document.getElementById("role");
+        tabs.forEach((tab) => {
+            tab.addEventListener("click", () => {
+                tabs.forEach((t) => t.classList.remove("active"));
+                tab.classList.add("active");
+                roleInput.value = tab.dataset.role;
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Timetable Entry - Attendance Management System{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1><i class="fa-solid fa-calendar-days"></i> {{ action }} Timetable Period</h1>
+</div>
+
+<form method="POST" class="form-card">
+    <div class="form-group">
+        <label for="department_id"><i class="fa-solid fa-building-columns"></i> Department *</label>
+        <select id="department_id" name="department_id" required>
+            <option value="">-- Select Department --</option>
+            {% for d in departments %}
+            <option value="{{ d.id }}" {% if entry and entry.department_id == d.id %}selected{% endif %}>{{ d.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="year"><i class="fa-solid fa-layer-group"></i> Year *</label>
+        <select id="year" name="year" required>
+            <option value="">-- Select Year --</option>
+            {% for y in years %}
+            <option value="{{ y }}" {% if entry and entry.year == y %}selected{% endif %}>Year {{ y }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="section"><i class="fa-solid fa-users"></i> Section *</label>
+        <input type="text" id="section" name="section" value="{{ entry.section if entry else '' }}" placeholder="e.g. A" required>
+    </div>
+    <div class="form-group">
+        <label for="day_of_week"><i class="fa-solid fa-calendar-day"></i> Day *</label>
+        <select id="day_of_week" name="day_of_week" required>
+            {% for d in days %}
+            <option value="{{ d }}" {% if entry and entry.day_of_week == d %}selected{% endif %}>{{ d }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="hour"><i class="fa-solid fa-clock"></i> Hour / Period *</label>
+        <select id="hour" name="hour" required>
+            {% for p in periods %}
+            <option value="{{ p }}" {% if entry and entry.hour == p %}selected{% endif %}>Period {{ p }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="subject_id"><i class="fa-solid fa-book"></i> Subject * <span class="hint-inline">(filtered by department &amp; year)</span></label>
+        <select id="subject_id" name="subject_id" required>
+            <option value="">-- Select Subject --</option>
+            {% for s in subjects %}
+            <option value="{{ s.id }}" data-department="{{ s.department_id }}" data-year="{{ s.year }}"
+                {% if entry and entry.subject_id == s.id %}selected{% endif %}>
+                {{ s.name }}{% if s.code %} ({{ s.code }}){% endif %}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="faculty_id"><i class="fa-solid fa-chalkboard-user"></i> Faculty *</label>
+        <select id="faculty_id" name="faculty_id" required>
+            <option value="">-- Select Faculty --</option>
+            {% for f in faculty %}
+            <option value="{{ f.id }}" {% if entry and entry.faculty_id == f.id %}selected{% endif %}>{{ f.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> {{ action }} Period</button>
+        <a href="{{ url_for('timetable') }}" class="btn btn-secondary"><i class="fa-solid fa-xmark"></i> Cancel</a>
+    </div>
+</form>
+
+<script>
+    // Subjects must always come from the Subject master table (never free text).
+    // This filters the visible options to match the chosen Department + Year,
+    // so faculty can only pick a subject that actually belongs to that class.
+    (function () {
+        const deptSelect = document.getElementById("department_id");
+        const yearSelect = document.getElementById("year");
+        const subjectSelect = document.getElementById("subject_id");
+        const subjectOptions = Array.from(subjectSelect.options).filter(o => o.value !== "");
+
+        function filterSubjects() {
+            const dept = deptSelect.value;
+            const year = yearSelect.value;
+            let firstVisible = null;
+            subjectOptions.forEach((opt) => {
+                const matchesDept = !dept || opt.dataset.department === dept;
+                const matchesYear = !year || opt.dataset.year === year;
+                const visible = matchesDept && matchesYear;
+                opt.hidden = !visible;
+                opt.disabled = !visible;
+                if (visible && firstVisible === null) firstVisible = opt;
+            });
+            const currentOpt = subjectSelect.selectedOptions[0];
+            if (currentOpt && currentOpt.hidden) {
+                subjectSelect.value = "";
+            }
+        }
+
+        deptSelect.addEventListener("change", filterSubjects);
+        yearSelect.addEventListener("change", filterSubjects);
+        filterSubjects();
+    })();
+</script>
+{% endblock %}

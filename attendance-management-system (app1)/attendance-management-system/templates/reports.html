@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}Reports - Attendance Management System{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1><i class="fa-solid fa-chart-column"></i> Attendance Reports</h1>
+    {% if current_role == 'admin' %}
+    <a href="{{ url_for('export_csv') }}" class="btn btn-secondary"><i class="fa-solid fa-download"></i> Export All (CSV)</a>
+    {% endif %}
+</div>
+
+<div class="report-tabs">
+    <a href="{{ url_for('reports', type='daily') }}" class="report-tab {% if report_type == 'daily' %}active{% endif %}"><i class="fa-solid fa-calendar-day"></i> Daily</a>
+    <a href="{{ url_for('reports', type='monthly') }}" class="report-tab {% if report_type == 'monthly' %}active{% endif %}"><i class="fa-solid fa-calendar"></i> Monthly</a>
+    <a href="{{ url_for('reports', type='student') }}" class="report-tab {% if report_type == 'student' %}active{% endif %}"><i class="fa-solid fa-user-graduate"></i> Student-wise</a>
+    <a href="{{ url_for('reports', type='subject') }}" class="report-tab {% if report_type == 'subject' %}active{% endif %}"><i class="fa-solid fa-book"></i> Subject-wise</a>
+    <a href="{{ url_for('reports', type='department') }}" class="report-tab {% if report_type == 'department' %}active{% endif %}"><i class="fa-solid fa-building-columns"></i> Department-wise</a>
+    <a href="{{ url_for('reports', type='year') }}" class="report-tab {% if report_type == 'year' %}active{% endif %}"><i class="fa-solid fa-layer-group"></i> Year-wise</a>
+    <a href="{{ url_for('reports', type='section') }}" class="report-tab {% if report_type == 'section' %}active{% endif %}"><i class="fa-solid fa-users"></i> Section-wise</a>
+    <a href="{{ url_for('reports', type='below75') }}" class="report-tab {% if report_type == 'below75' %}active{% endif %}"><i class="fa-solid fa-triangle-exclamation"></i> Below 75%</a>
+</div>
+
+{% if report_type == 'daily' %}
+<form method="GET" class="filter-bar">
+    <input type="hidden" name="type" value="daily">
+    <label><i class="fa-solid fa-calendar-day"></i> Date:</label>
+    <input type="date" name="date" value="{{ report_date }}" onchange="this.form.submit()">
+</form>
+
+{% if rows %}
+<div class="table-wrapper reveal">
+    <table class="data-table">
+        <thead><tr><th>Roll No</th><th>Name</th><th>Dept</th><th>Year</th><th>Section</th><th>Hour</th><th>Subject</th><th>Faculty</th><th>Status</th></tr></thead>
+        <tbody>
+            {% for r in rows %}
+            <tr>
+                <td>{{ r.roll_no }}</td><td>{{ r.name }}</td><td>{{ r.department_name or "-" }}</td>
+                <td>{{ r.year or "-" }}</td><td>{{ r.section or "-" }}</td><td>{{ r.hour }}</td>
+                <td>{{ r.subject_name or "-" }}</td><td>{{ r.faculty_name or "-" }}</td>
+                <td><span class="status-badge status-{{ r.status|lower }}">{{ r.status }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="empty-state"><i class="fa-solid fa-inbox"></i><br>No attendance recorded for this date.</p>
+{% endif %}
+
+{% elif report_type == 'monthly' %}
+<form method="GET" class="filter-bar">
+    <input type="hidden" name="type" value="monthly">
+    <label><i class="fa-solid fa-calendar"></i> Month:</label>
+    <input type="month" name="month" value="{{ year_month }}" onchange="this.form.submit()">
+</form>
+
+{% if rows %}
+<div class="table-wrapper reveal">
+    <table class="data-table">
+        <thead><tr><th>Roll No</th><th>Name</th><th>Dept</th><th>Year</th><th>Section</th><th>Present</th><th>Absent</th><th>Total</th><th>%</th><th>Eligibility Status</th><th>Remaining Leave</th><th>Classes Needed for 75%</th></tr></thead>
+        <tbody>
+            {% for r in rows %}
+            <tr>
+                <td>{{ r.roll_no }}</td><td>{{ r.name }}</td><td>{{ r.department_name or "-" }}</td>
+                <td>{{ r.year or "-" }}</td><td>{{ r.section or "-" }}</td>
+                <td>{{ r.present_count }}</td><td>{{ r.absent_count }}</td><td>{{ r.total_count }}</td>
+                <td><span class="pct-badge {% if r.status_class == 'good' %}pct-good{% elif r.status_class == 'bad' %}pct-bad{% else %}pct-neutral{% endif %}">{{ r.percentage }}%</span></td>
+                <td><span class="status-badge {% if r.status_class == 'good' %}status-present{% elif r.status_class == 'bad' %}status-absent{% else %}status-late{% endif %}">{{ r.status_text }}</span></td>
+                <td>{{ r.remaining_leave }}</td>
+                <td>{{ r.days_required }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="empty-state"><i class="fa-solid fa-inbox"></i><br>No attendance recorded for this month.</p>
+{% endif %}
+
+{% elif report_type == 'student' %}
+<form method="GET" class="filter-bar">
+    <input type="hidden" name="type" value="student">
+    <select name="student_id" onchange="this.form.submit()">
+        <option value="">All Students</option>
+        {% for s in students_all %}
+        <option value="{{ s.id }}" {% if selected_student_id == s.id %}selected{% endif %}>{{ s.roll_no }} - {{ s.name }}</option>
+        {% endfor %}
+    </select>
+</form>
+{% include "_report_summary_table.html" %}
+
+{% elif report_type == 'subject' %}
+<form method="GET" class="filter-bar">
+    <input type="hidden" name="type" value="subject">
+    <select name="subject_id" onchange="this.form.submit()">
+        <option value="">All Subjects</option>
+        {% for sub in subjects %}
+        <option value="{{ sub.id }}" {% if selected_subject_id == sub.id %}selected{% endif %}>{{ sub.name }}</option>
+        {% endfor %}
+    </select>
+</form>
+{% if rows %}
+<div class="table-wrapper reveal">
+    <table class="data-table">
+        <thead><tr><th>Subject</th><th>Present</th><th>Absent</th><th>Total</th><th>%</th></tr></thead>
+        <tbody>
+            {% for r in rows %}
+            <tr>
+                <td>{{ r.subject_name }}</td><td>{{ r.present_count }}</td><td>{{ r.absent_count }}</td><td>{{ r.total_count }}</td>
+                <td><span class="pct-badge {% if r.percentage >= 75 %}pct-good{% elif r.percentage >= 50 %}pct-warn{% else %}pct-bad{% endif %}">{{ r.percentage }}%</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="empty-state"><i class="fa-solid fa-inbox"></i><br>No subjects found.</p>
+{% endif %}
+
+{% elif report_type == 'department' %}
+<form method="GET" class="filter-bar">
+    <input type="hidden" name="type" value="department">
+    <select name="department_id" onchange="this.form.submit()">
+        <option value="">All Departments</option>
+        {% for d in departments %}
+        <option value="{{ d.id }}" {% if selected_department_id == d.id %}selected{% endif %}>{{ d.name }}</option>
+        {% endfor %}
+    </select>
+</form>
+{% include "_report_summary_table.html" %}
+
+{% elif report_type == 'year' %}
+<form method="GET" class="filter-bar">
+    <input type="hidden" name="type" value="year">
+    <select name="year" onchange="this.form.submit()">
+        <option value="">All Years</option>
+        {% for y in years %}
+        <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>Year {{ y }}</option>
+        {% endfor %}
+    </select>
+</form>
+{% include "_report_summary_table.html" %}
+
+{% elif report_type == 'section' %}
+<form method="GET" class="filter-bar">
+    <input type="hidden" name="type" value="section">
+    <select name="section" onchange="this.form.submit()">
+        <option value="">All Sections</option>
+        {% for s in sections %}
+        <option value="{{ s }}" {% if selected_section == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+    </select>
+</form>
+{% include "_report_summary_table.html" %}
+
+{% elif report_type == 'below75' %}
+<p class="page-subtitle">Students currently below the 75% attendance requirement.</p>
+{% include "_report_summary_table.html" %}
+
+{% endif %}
+{% endblock %}
